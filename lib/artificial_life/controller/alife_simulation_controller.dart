@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../world/alife_world.dart';
 import '../core/physical_entity.dart';
 import '../core/organism.dart';
+import '../core/biology.dart';
 import 'dart:math';
 
 class ALifeSimulationController extends ChangeNotifier {
@@ -39,11 +40,12 @@ class ALifeSimulationController extends ChangeNotifier {
     world.addEntity(harmful);
 
     // 2. Setup Organisms (Two initial flies)
-    var adam = Organism(id: 'Adam', x: 400, y: 250, enableLearning: true);
-    var eve = Organism(id: 'Eve', x: 400, y: 350, enableLearning: true);
+    var adam = Organism(id: 'Adam', x: 400, y: 250, enableLearning: true, sex: Sex.male);
+    var eve = Organism(id: 'Eve', x: 400, y: 350, enableLearning: true, sex: Sex.female);
 
     world.addEntity(adam);
     world.addEntity(eve);
+    world.flushPendingEntities();
   }
 
   void start() {
@@ -71,6 +73,10 @@ class ALifeSimulationController extends ChangeNotifier {
     
     // 2. Physics Tick
     world.physicsTick(dt);
+    
+    // 3. World Cleanup & Spawn
+    world.flushPendingEntities();
+    world.removeDead();
     
     tickCount++;
     notifyListeners();

@@ -4,6 +4,7 @@ import '../artificial_life/controller/alife_simulation_controller.dart';
 import '../artificial_life/core/organism.dart';
 import '../artificial_life/core/physical_entity.dart';
 import '../artificial_life/world/alife_world.dart';
+import '../artificial_life/core/biology.dart';
 
 class ALifeExperimentScreen extends StatefulWidget {
   const ALifeExperimentScreen({super.key});
@@ -57,40 +58,62 @@ class _ALifeExperimentScreenState extends State<ALifeExperimentScreen> with Widg
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.amberAccent),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('ALife Observatory', style: TextStyle(color: Colors.amberAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 16, color: Colors.white),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () => setState(() => _selectedOrganism = null),
-                )
-              ],
-            ),
-            const Divider(color: Colors.white24),
-            Text('Subject: ${org.id}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-            const SizedBox(height: 8),
-            
-            const Text('Internal State', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-            _statRow('Energy', org.internalEnergy.toStringAsFixed(1)),
-            _statRow('Damage', org.damage.toStringAsFixed(1)),
-            
-            const SizedBox(height: 8),
-            const Text('Motor Output', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-            _statRow('Thrust', org.motors.forwardThrust.toStringAsFixed(2)),
-            _statRow('Turn', org.motors.rotationalTorque.toStringAsFixed(2)),
-            _statRow('Interact', org.motors.interactionAttempt.toStringAsFixed(2)),
-            
-            const SizedBox(height: 8),
-            const Text('Sensory Input', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-            _statRow('Chem 0 (Ben)', org.sensors.chemicalReadings[0].toStringAsFixed(2)),
-            _statRow('Chem 1 (Harm)', org.sensors.chemicalReadings[1].toStringAsFixed(2)),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('ALife Observatory', style: TextStyle(color: Colors.amberAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16, color: Colors.white),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => setState(() => _selectedOrganism = null),
+                  )
+                ],
+              ),
+              const Divider(color: Colors.white24),
+              Text('ID: ${org.id.split('_').last}', style: const TextStyle(color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold)),
+              _statRow('Sex', org.sex.name.toUpperCase()),
+              _statRow('Stage', org.stage.name.toUpperCase()),
+              _statRow('Age', org.age.toStringAsFixed(1)),
+              _statRow('Generation', '${org.generation}'),
+              _statRow('Pos (x,y)', '${org.x.toStringAsFixed(0)}, ${org.y.toStringAsFixed(0)}'),
+              
+              if (org.parent1Id != null) _statRow('Parents', '${org.parent1Id?.split('_').last}, ${org.parent2Id?.split('_').last}'),
+
+              const Divider(color: Colors.white24),
+              const Text('Internal State', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              _statRow('Energy', '${org.internalEnergy.toStringAsFixed(1)} / ${org.genetics.maxEnergy.toStringAsFixed(1)}'),
+              _statRow('Damage', org.damage.toStringAsFixed(1)),
+              _statRow('Mating Cooldown', org.matingCooldown > 0 ? org.matingCooldown.toStringAsFixed(1) : 'READY'),
+              
+              const Divider(color: Colors.white24),
+              const Text('Motor Output', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              _statRow('Thrust', org.motors.forwardThrust.toStringAsFixed(2)),
+              _statRow('Turn', org.motors.rotationalTorque.toStringAsFixed(2)),
+              _statRow('Interact', org.motors.interactionAttempt.toStringAsFixed(2)),
+              
+              const Divider(color: Colors.white24),
+              const Text('Sensory Input', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              _statRow('Chem 0 (Ben)', org.sensors.chemicalReadings[0].toStringAsFixed(2)),
+              _statRow('Chem 1 (Harm)', org.sensors.chemicalReadings[1].toStringAsFixed(2)),
+              _statRow('Chem 2 (Phero)', org.sensors.chemicalReadings[2].toStringAsFixed(2)),
+
+              const Divider(color: Colors.white24),
+              const Text('Learning & Memory', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              _statRow('Advantage / TD Error', org.enableLearning ? 'ACTIVE' : 'FROZEN'),
+              _statRow('Memory Trace (E2 avg)', (org.brain.e2.reduce((a, b) => a + b) / org.brain.e2.length).toStringAsFixed(4)),
+              
+              const Divider(color: Colors.white24),
+              const Text('Genetics', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              _statRow('Metabolism', org.genetics.metabolicRate.toStringAsFixed(3)),
+              _statRow('Maturity Speed', org.genetics.maturitySpeed.toStringAsFixed(2)),
+              _statRow('Sense Radius', org.genetics.sensoryRadius.toStringAsFixed(0)),
+            ],
+          ),
         ),
       ),
     );
@@ -195,27 +218,51 @@ class ALifePainter extends CustomPainter {
         canvas.translate(entity.x, entity.y);
         canvas.rotate(entity.heading);
         
+        // Render differently based on stage
+        if (entity.stage == LifeStage.egg) {
+          canvas.drawCircle(const Offset(0, 0), 4, Paint()..color = Colors.white70);
+          canvas.restore();
+          continue;
+        } else if (entity.stage == LifeStage.pupa) {
+          canvas.drawOval(Rect.fromCenter(center: const Offset(0, 0), width: 12, height: 8), Paint()..color = Colors.brown[800]!);
+          canvas.restore();
+          continue;
+        } else if (entity.stage == LifeStage.dead) {
+          canvas.drawOval(Rect.fromCenter(center: const Offset(0, 0), width: 10, height: 6), Paint()..color = Colors.grey[800]!);
+          canvas.drawLine(const Offset(-4, -4), const Offset(4, 4), Paint()..color = Colors.black..strokeWidth = 1);
+          canvas.drawLine(const Offset(-4, 4), const Offset(4, -4), Paint()..color = Colors.black..strokeWidth = 1);
+          canvas.restore();
+          continue;
+        }
+
+        double scale = (entity.stage == LifeStage.adult) ? 1.0 : 0.6;
+        canvas.scale(scale, scale);
+
+        Color bodyColor = entity.sex == Sex.female ? Colors.blueGrey[300]! : Colors.blueGrey[700]!;
+        
         // Simple fly body
-        canvas.drawOval(Rect.fromCenter(center: const Offset(-4, 0), width: 10, height: 6), Paint()..color = Colors.blueGrey); // Abdomen
-        canvas.drawOval(Rect.fromCenter(center: const Offset(2, 0), width: 8, height: 6), Paint()..color = Colors.grey[700]!); // Thorax
+        canvas.drawOval(Rect.fromCenter(center: const Offset(-4, 0), width: 10, height: 6), Paint()..color = bodyColor); // Abdomen
+        canvas.drawOval(Rect.fromCenter(center: const Offset(2, 0), width: 8, height: 6), Paint()..color = Colors.grey[800]!); // Thorax
         canvas.drawCircle(const Offset(6, 0), 2.5, Paint()..color = Colors.black87); // Head
 
-        // Wings flapping based on physical movement
-        double speed = sqrt(entity.velocityX * entity.velocityX + entity.velocityY * entity.velocityY);
-        double wingAngle = (speed > 5) ? sin(DateTime.now().millisecondsSinceEpoch / 20.0) * 0.5 : 0.2;
-        final wingPaint = Paint()..color = Colors.white.withOpacity(0.6);
-        
-        canvas.save();
-        canvas.translate(1, -2);
-        canvas.rotate(-wingAngle - 0.5);
-        canvas.drawOval(Rect.fromCenter(center: const Offset(-4, -4), width: 10, height: 4), wingPaint);
-        canvas.restore();
+        // Wings flapping based on physical movement (only for adults)
+        if (entity.stage == LifeStage.adult) {
+          double speed = sqrt(entity.velocityX * entity.velocityX + entity.velocityY * entity.velocityY);
+          double wingAngle = (speed > 5) ? sin(DateTime.now().millisecondsSinceEpoch / 20.0) * 0.5 : 0.2;
+          final wingPaint = Paint()..color = Colors.white.withOpacity(0.6);
+          
+          canvas.save();
+          canvas.translate(1, -2);
+          canvas.rotate(-wingAngle - 0.5);
+          canvas.drawOval(Rect.fromCenter(center: const Offset(-4, -4), width: 10, height: 4), wingPaint);
+          canvas.restore();
 
-        canvas.save();
-        canvas.translate(1, 2);
-        canvas.rotate(wingAngle + 0.5);
-        canvas.drawOval(Rect.fromCenter(center: const Offset(-4, 4), width: 10, height: 4), wingPaint);
-        canvas.restore();
+          canvas.save();
+          canvas.translate(1, 2);
+          canvas.rotate(wingAngle + 0.5);
+          canvas.drawOval(Rect.fromCenter(center: const Offset(-4, 4), width: 10, height: 4), wingPaint);
+          canvas.restore();
+        }
 
         canvas.restore();
       } else {

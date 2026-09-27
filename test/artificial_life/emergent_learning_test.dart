@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:brain_fly/artificial_life/core/physical_entity.dart';
 import 'package:brain_fly/artificial_life/core/organism.dart';
 import 'package:brain_fly/artificial_life/world/alife_world.dart';
+import 'package:brain_fly/artificial_life/core/biology.dart';
 
 void main() {
   test('Minimum Emergent-Learning Test - Sensory Association', () {
@@ -30,8 +31,12 @@ void main() {
         // Alternate between A and B
         bool isA = (i ~/ 100) % 2 == 0;
         world.addEntity(isA ? entityA : entityB);
+        world.flushPendingEntities();
         
-        // Keep agent centered
+        // Keep agent alive and centered
+        agent.internalEnergy = 100.0;
+        agent.age = 0.0;
+        agent.stage = LifeStage.adult;
         agent.x = 200; agent.y = 200;
         agent.velocityX = 0; agent.velocityY = 0;
         agent.motors.forwardThrust = 0; agent.motors.rotationalTorque = 0;

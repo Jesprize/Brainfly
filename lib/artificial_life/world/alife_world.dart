@@ -4,12 +4,22 @@ import '../core/physical_entity.dart';
 class ALifeWorld {
   double width;
   double height;
-  final List<PhysicalEntity> entities = [];
+  List<PhysicalEntity> entities = [];
+  final List<PhysicalEntity> _pendingEntities = [];
 
   ALifeWorld({this.width = 1000, this.height = 1000});
 
   void addEntity(PhysicalEntity entity) {
-    entities.add(entity);
+    _pendingEntities.add(entity);
+  }
+
+  void flushPendingEntities() {
+    entities.addAll(_pendingEntities);
+    _pendingEntities.clear();
+  }
+  
+  void removeDead() {
+    entities.removeWhere((e) => e.mass == 0 && e.radius < 5); // Example of cleanup if needed, but for now dead bodies can persist with mass=0
   }
 
   void physicsTick(double dt) {

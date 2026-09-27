@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:brain_fly/artificial_life/core/physical_entity.dart';
 import 'package:brain_fly/artificial_life/core/organism.dart';
 import 'package:brain_fly/artificial_life/world/alife_world.dart';
+import 'package:brain_fly/artificial_life/core/biology.dart';
 import 'dart:math';
 
 void main() {
@@ -38,6 +39,7 @@ void main() {
       world.addEntity(beneficial);
       world.addEntity(harmful);
       world.addEntity(agent);
+      world.flushPendingEntities();
       
       double interactionsWithA = 0;
       double interactionsWithB = 0;
@@ -45,6 +47,11 @@ void main() {
       Random r = Random(42);
 
       for (int i = 0; i < ticks; i++) {
+        // Keep agent alive
+        agent.internalEnergy = 100.0;
+        agent.age = 0.0;
+        agent.stage = LifeStage.adult;
+
         // Reset agent position periodically to force exploration from different angles
         if (randomizePosition && i % 2000 == 0) {
           agent.x = 400; 
