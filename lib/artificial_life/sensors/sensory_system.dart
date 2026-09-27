@@ -37,9 +37,9 @@ class SensorySystem {
       double dx = entity.x - self.x;
       double dy = entity.y - self.y;
       double distSq = dx*dx + dy*dy;
-      if (distSq < 40000) { // 200 radius max detection
+      if (distSq < 160000) { // 400 radius max detection
         double dist = sqrt(distSq);
-        double intensity = 1.0 - (dist / 200.0);
+        double intensity = 1.0 - (dist / 400.0);
         for (int i=0; i<chemicalChannels && i<entity.chemicalSignature.length; i++) {
           _chemicalReadings[i] += entity.chemicalSignature[i] * intensity;
         }

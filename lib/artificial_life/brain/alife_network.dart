@@ -21,16 +21,17 @@ class ALifeNetwork {
   List<double> outputNoise = [];
   
   final double learningRate = 0.05;
-  final double discountFactor = 0.0;
-  final Random rand = Random();
+  final double discountFactor = 0.9;
+  late Random rand;
   double rewardBaseline = 0.0;
 
-  ALifeNetwork(this.numInputs, this.numHidden, this.numOutputs)
+  ALifeNetwork(this.numInputs, this.numHidden, this.numOutputs, {int? seed})
       : w1 = [],
         w2 = [],
         e1 = List.filled(numHidden * numInputs, 0.0),
         e2 = List.filled(numOutputs * numHidden, 0.0),
         outputNoise = List.filled(numOutputs, 0.0) {
+    rand = seed != null ? Random(seed) : Random();
     w1 = List.generate(numHidden * numInputs, (_) => (rand.nextDouble() - 0.5) * 2.0);
     w2 = List.generate(numOutputs * numHidden, (_) => (rand.nextDouble() - 0.5) * 2.0);
     lastInputs = List.filled(numInputs, 0.0);

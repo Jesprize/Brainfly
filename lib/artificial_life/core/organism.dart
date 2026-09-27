@@ -24,9 +24,10 @@ class Organism extends PhysicalEntity {
     required super.x,
     required super.y,
     this.enableLearning = true,
+    int? seed,
   }) : sensors = SensorySystem(),
        motors = MotorSystem(),
-       brain = ALifeNetwork(6, 12, 5); // 3 Chem, 3 Grad -> 4 Motor, 1 Critic
+       brain = ALifeNetwork(7, 12, 5, seed: seed); // 3 Chem, 3 Grad, 1 Bias -> 4 Motor, 1 Critic
 
   void biologicalTick(ALifeWorld world, double dt) {
     // 1. Biological Consequence of Interaction
@@ -71,6 +72,7 @@ class Organism extends PhysicalEntity {
     List<double> inputs = [
       ...sensors.chemicalReadings, // 3 floats
       ...sensors.chemicalGradients, // 3 floats
+      1.0, // Bias neuron
     ];
     
     List<double> networkOutputs = brain.forward(inputs, learning: enableLearning);

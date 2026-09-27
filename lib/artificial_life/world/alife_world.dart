@@ -2,8 +2,8 @@ import 'dart:math';
 import '../core/physical_entity.dart';
 
 class ALifeWorld {
-  final double width;
-  final double height;
+  double width;
+  double height;
   final List<PhysicalEntity> entities = [];
 
   ALifeWorld({this.width = 1000, this.height = 1000});

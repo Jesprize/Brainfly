@@ -9,6 +9,7 @@ import '../models/genetics.dart';
 import '../models/personality.dart';
 import '../services/storage_service.dart';
 import 'experiment_screen.dart';
+import 'alife_experiment_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -120,6 +121,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 backgroundColor: Colors.deepPurpleAccent,
                 foregroundColor: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ALifeExperimentScreen()),
+                );
+              },
+              icon: const Icon(Icons.psychology),
+              label: const Text('Run ALife V3 Core Integration', style: TextStyle(fontSize: 16)),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                backgroundColor: Colors.amberAccent,
+                foregroundColor: Colors.black,
               ),
             ),
             if (_savedExperiments.isNotEmpty) ...[
