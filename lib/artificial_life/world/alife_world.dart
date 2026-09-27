@@ -6,8 +6,17 @@ class ALifeWorld {
   double height;
   List<PhysicalEntity> entities = [];
   final List<PhysicalEntity> _pendingEntities = [];
+  final List<String> events = [];
 
   ALifeWorld({this.width = 1000, this.height = 1000});
+
+  void logEvent(String message) {
+    String timeStr = DateTime.now().toIso8601String().substring(11, 19);
+    events.insert(0, '[$timeStr] $message');
+    if (events.length > 50) {
+      events.removeLast();
+    }
+  }
 
   void addEntity(PhysicalEntity entity) {
     _pendingEntities.add(entity);

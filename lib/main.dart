@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'services/storage_service.dart';
 import 'ui/welcome_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await StorageService.init();
+  // Storage initialization bypassed for ALife V3 Phase 3
   runApp(const BrainFlyApp());
 }
 

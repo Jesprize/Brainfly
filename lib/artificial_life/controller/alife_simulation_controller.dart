@@ -14,6 +14,7 @@ class ALifeSimulationController extends ChangeNotifier {
   // Track simulation ticks independent of flutter frames
   int tickCount = 0;
   final double dt = 0.016; // 60hz simulation logic
+  double simulationSpeed = 1.0;
 
   ALifeSimulationController() {
     world = ALifeWorld(width: 800, height: 600);
@@ -51,15 +52,39 @@ class ALifeSimulationController extends ChangeNotifier {
   void start() {
     if (isRunning) return;
     isRunning = true;
-    _timer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+    _scheduleTimer();
+    notifyListeners();
+  }
+
+  void _scheduleTimer() {
+    _timer?.cancel();
+    int interval = (16.0 / simulationSpeed).round();
+    if (interval < 1) interval = 1;
+    _timer = Timer.periodic(Duration(milliseconds: interval), (timer) {
       _tick();
     });
+  }
+
+  void setSpeed(double speed) {
+    simulationSpeed = speed;
+    if (isRunning) {
+      _scheduleTimer();
+    }
     notifyListeners();
   }
 
   void pause() {
     isRunning = false;
     _timer?.cancel();
+    notifyListeners();
+  }
+  
+  void reset() {
+    pause();
+    tickCount = 0;
+    world = ALifeWorld(width: world.width, height: world.height);
+    _initializeWorld();
+    world.logEvent('Simulation reset.');
     notifyListeners();
   }
 

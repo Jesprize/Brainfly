@@ -64,17 +64,19 @@ class Organism extends PhysicalEntity {
     _prevDamage = damage;
     // Biological processing
     age += dt * genetics.maturitySpeed;
-    if (matingCooldown > 0) matingCooldown -= dt;
-
-    if (stage == LifeStage.egg && age > 5.0) stage = LifeStage.larva1;
-    else if (stage == LifeStage.larva1 && age > 15.0) stage = LifeStage.larva2;
-    else if (stage == LifeStage.larva2 && age > 25.0) stage = LifeStage.larva3;
-    else if (stage == LifeStage.larva3 && age > 35.0) stage = LifeStage.pupa;
-    else if (stage == LifeStage.pupa && age > 50.0) stage = LifeStage.adult;
+    if (stage == LifeStage.egg && age > 5.0) { stage = LifeStage.larva1; }
+    else if (stage == LifeStage.larva1 && age > 15.0) { stage = LifeStage.larva2; }
+    else if (stage == LifeStage.larva2 && age > 25.0) { stage = LifeStage.larva3; }
+    else if (stage == LifeStage.larva3 && age > 35.0) { stage = LifeStage.pupa; }
+    else if (stage == LifeStage.pupa && age > 50.0) {
+      stage = LifeStage.adult;
+      world.logEvent('Organism ${id.split('_').last} matured to adult.');
+    }
 
     if (age > 200.0) {
       stage = LifeStage.dead;
       mass = 0; // stop moving
+      world.logEvent('Organism ${id.split('_').last} died of old age.');
     }
     
     // Base metabolic cost of movement and existing
@@ -84,6 +86,7 @@ class Organism extends PhysicalEntity {
     if (internalEnergy <= 0) {
       stage = LifeStage.dead;
       mass = 0;
+      world.logEvent('Organism ${id.split('_').last} died of starvation.');
     }
     
     if (stage == LifeStage.dead) return;
@@ -114,8 +117,9 @@ class Organism extends PhysicalEntity {
                   
                   Genetics childGenetics = Genetics.crossover(genetics, entity.genetics, Random());
                   
+                  String childId = 'gen${generation + 1}_${DateTime.now().millisecondsSinceEpoch}';
                   world.addEntity(Organism(
-                    id: 'gen${generation + 1}_${DateTime.now().millisecondsSinceEpoch}',
+                    id: childId,
                     x: x + (Random().nextDouble() - 0.5) * 10,
                     y: y + (Random().nextDouble() - 0.5) * 10,
                     enableLearning: true,
@@ -125,6 +129,8 @@ class Organism extends PhysicalEntity {
                     parent1Id: id,
                     parent2Id: entity.id,
                   ));
+                  
+                  world.logEvent('${id.split('_').last} and ${entity.id.split('_').last} reproduced. New egg $childId spawned.');
                 }
               }
             } else {
